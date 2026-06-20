@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: loglens
+  datasource:
+    url: jdbc:h2:file:./data/loglens;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 200
+        order_inserts: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+loglens:
+  ingest:
+    queue-capacity: 50000
+    batch-size: 500
+    flush-interval-ms: 200
+  alerts:
+    scan-interval-ms: 15000
+  retention:
+    days: 7
+    scan-interval-ms: 3600000
+  demo:
+    seed-on-startup: true
+    reseed-stale: true
+    events: 2500
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
