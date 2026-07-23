@@ -11,6 +11,9 @@ public final class TimeParser {
     private TimeParser() {
     }
 
+    /** Maximum accepted input length for a single timestamp string. */
+    private static final int MAX_INPUT_LEN = 1_000_000;
+
     /**
      * Accepts ISO-8601 instants, naive local/offset date-times (assumed UTC) and
      * epoch seconds/millis. Returns null when nothing matches so callers can decide

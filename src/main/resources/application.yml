@@ -24,6 +24,7 @@ spring:
 
 loglens:
   ingest:
+    # queue capacity for the in-memory ingest buffer
     queue-capacity: 50000
     batch-size: 500
     flush-interval-ms: 200
