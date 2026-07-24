@@ -243,4 +243,4 @@ src/test/java/...      18 unit tests
   logs. Acceptable for the demo scope.
 - Alert evaluation runs on a fixed schedule (15s), not as an instant stream
   processor. You can call `/rules/evaluate` to force it during a demo.
-- Retention purges logs older than `loglens.retention.days` (default 7).
+- Retention purges logs older than `loglens.retention.days` (default 7). The purge runs on an hourly schedule and is safe to run repeatedly.
