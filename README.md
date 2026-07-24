@@ -83,22 +83,41 @@ alert evaluation logic.
 ## Architecture
 
 ```
-                 HTTP POST /api/v1/logs/ingest
-                          │
-                          ▼
-   ┌─────────────┐   ┌──────────────┐   (ArrayBlockingQueue,
-   │ LogParser   │──▶│ IngestBuffer  │──▶ batched + scheduled) ──▶ H2  LogEvent
-   └─────────────┘   └──────────────┘                                   │
-                                                                          │
-   QueryService ── reads ──▶ /api/v1/query                               │
-   MetricsService ─ reads ─▶ /api/v1/metrics/summary                      │
-                                                                          ▼
-                                          AlertEvaluationService (scheduled scan)
-                                                     │ evaluates AlertRule rows
-                                                     ▼
-                                                H2  Alert
-                                                     │
-                                          /api/v1/alerts   + dashboard
+                   HTTP POST /api/v1/logs/ingest
+                                 │
+                                 ▼
+                           ┌─────────────┐
+                           │  LogParser  │  parses JSON + plain-text lines
+                           └──────┬──────┘
+                                  │ LogEvent
+                                  ▼
+                           ┌─────────────┐
+                           │ IngestBuffer│  ArrayBlockingQueue,
+                           │             │  batched + scheduled flush
+                           └──────┬──────┘
+                                  │ persist (batch)
+                                  ▼
+                      ┌──────────────────────┐
+                      │    H2 store (file)   │
+                      │  - LogEvent          │
+                      │  - AlertRule         │
+                      │  - Alert             │
+                      └──────────┬───────────┘
+                                 │
+           ┌─────────────────────┼─────────────────────┐
+           │                     │                     │
+           ▼                     ▼                     ▼
+    ┌────────────┐       ┌──────────────┐      ┌────────────────────┐
+    │ QuerySvc   │       │ MetricsSvc   │      │  AlertEvalSvc      │
+    └─────┬──────┘       └──────┬───────┘      │  (scheduled scan)  │
+          │                     │              └─────────┬──────────┘
+          ▼                     ▼                        │ writes Alert
+ /api/v1/query       /api/v1/metrics/summary            ▼
+                                                 ┌─────────────┐
+                                                 │  H2 Alert   │
+                                                 └──────┬──────┘
+                                                        ▼
+                                           /api/v1/alerts + dashboard
 ```
 
 **Why a buffer?** Logs can arrive in bursts. Instead of writing each line to the
